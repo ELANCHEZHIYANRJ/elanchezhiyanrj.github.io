@@ -1,0 +1,128 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SJCE BUS LOCATION </title>
+    
+    <!-- Leaflet.js CSS for Map Styling -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    
+    <style>
+        body { margin: 0; padding: 0; background-image: url('BG.png'); background-size: cover; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+		#menu{height: 120px; background-color: rgba(0, 125, 255,1)}
+		#menu_container{
+			display: flex; /* Aligns children in a row by default */
+			justify-content: space-between; /* Centers them horizontally */
+			gap: 10px; /* Adds space between the divs */
+			}
+        #map { height: 100vh; width: 100vw; }
+        .info-panel {
+            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+            background: rgba(0, 125, 255, 0.9); padding: 20px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); width: 220px;
+        }
+        .status-dot { height: 10px; width: 10px; background: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .active { background: #0f0f0f; }
+    </style>
+</head>
+
+<body>
+<div id="menu">
+<div id="menu_container">
+
+
+	<div id="logo1">
+	<img src="SJCE_logo1.png" height ="60px">
+	</div>
+	<div>
+		<h1> SMART GPS-GSM BASED BUS LOCATION MONITORING SYSTEM<br></h1>
+	</div>
+	<div id="logo2">
+	<img src="SJCE_logo2.png" height ="60px">
+	</div>
+</div>
+<marquee direction="right"> St. Joseph's College of Engineering,OMR, Chennai - 600119</marquee>
+</div>
+
+
+<div id="map" style="height: 400px; width: 100%;">
+	<div class="info-panel">
+        <h3>BUS Latest Location</h3>
+        <p>Lat: <span id="lat">Loading...</span></p>
+        <p>Lng: <span id="lng">Loading...</span></p>
+        <p><small>Updates every 15s</small></p>
+    </div>
+</div>
+
+<div id="credit">
+Project done by:<br> Mugilan RJ (312322106100) <br> Mothish (312322106099)
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<script>
+
+	
+// 1. Initialize map and marker variables
+
+const busIcon = L.icon({
+    iconUrl: 'Bus_marker.png', // You can replace this URL with your own bus image
+    iconSize: [40, 40], // Size of the icon [width, height]
+    iconAnchor: [20, 40], // The point of the icon which will correspond to marker's location (center-bottom)
+    popupAnchor: [0, -40] // Point from which the popup should open relative to the iconAnchor
+});
+
+/*
+const stopIcon = L.icon({
+    iconUrl: 'Bus_marker.png', // You can replace this URL with your own bus image
+    iconSize: [40, 40], // Size of the icon [width, height]
+    iconAnchor: [20, 40], // The point of the icon which will correspond to marker's location (center-bottom)
+    popupAnchor: [0, -40] // Point from which the popup should open relative to the iconAnchor
+});
+*/
+
+const map = L.map('map').setView([12.973, 80.125], 2); // Initial center
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+let buslocation = L.marker([0, 0],{icon: busIcon}).addTo(map);
+
+let stop1 =  L.marker([12.870142,80.226416]).addTo(map);
+    stop1.bindPopup("College").openPopup();
+let stop2 =  L.marker([12.870142,80.226416]).addTo(map);
+
+async function fetchThingSpeakData() {
+    const url = `https://api.thingspeak.com/channels/3348094/feeds.json?results=1`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        const lat = parseFloat(data.feeds[0].field1);
+        const lng = parseFloat(data.feeds[0].field2);
+        
+        // 2. Update UI text
+        document.getElementById("lat").innerHTML = lat;
+        document.getElementById("lng").innerHTML = lng;
+
+        // 3. Update Map and Marker position
+        const newLatLng = [lat, lng];
+        map.setView(newLatLng, 15); // Center map on new location
+        buslocation.setLatLng(newLatLng); // Move marker
+        buslocation.bindPopup(`Location: ${lat}, ${lng}`).openPopup();
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+
+fetchThingSpeakData();
+setInterval(fetchThingSpeakData, 15000);
+	
+	</script>
+	
+	
+	
+</body>
+</html>
